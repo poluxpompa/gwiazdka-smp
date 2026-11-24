@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Płatność – merch GWIAZDKA SMP</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Pixelify+Sans:wght@500;600;700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=20261124f">
+<script>if(sessionStorage.getItem("wipe")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("wipe-in");sessionStorage.removeItem("wipe");setTimeout(function(){document.documentElement.classList.remove("wipe-in")},1500)</script>
+</head>
+<body>
+
+<header class="header">
+  <div class="wrap header__in">
+    <a class="logo" href="index.html" aria-label="Gwiazdka SMP – strona główna"><img src="logo.webp" alt="Gwiazdka SMP" width="127" height="62"></a>
+    <nav class="nav" id="nav">
+      <a href="index.html#start">Start</a>
+      <a href="index.html#informacje">Informacje</a>
+      <a href="index.html#ranking">Ranking</a>
+      <a href="merch.html">Merch</a>
+    </nav>
+    <div class="header__end">
+      <a class="btn btn--red btn--sm" href="index.html#wesprzyj" data-link="donate">Wesprzyj</a>
+      <a class="icon-btn" href="merch.html#koszyk" aria-label="Koszyk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+        <span class="cart-count" id="cartCount" hidden>0</span>
+      </a>
+      <button class="icon-btn burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="nav">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="pay">
+  <div class="wrap">
+    <a class="pay__back" href="merch.html"><svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path d="M1 3h1v2H1zM2 2h1v4H2zM3 1h1v6H3zM4 3h3v2H4z" fill="currentColor"/></svg>Wróć do sklepu</a>
+    <h1 class="pay__title">Płatność</h1>
+
+    <div class="pay__empty" id="payEmpty" hidden>
+      <p>Koszyk jest pusty.</p>
+      <a class="btn btn--blue" href="merch.html">Przejdź do sklepu</a>
+    </div>
+
+    <div class="pay__grid" id="payGrid">
+      <form class="pay__form" id="payForm" novalidate>
+        <fieldset class="pstep">
+          <legend><span class="pstep__n">1</span>Twoje dane</legend>
+          <div class="fields">
+            <label class="field field--wide"><span>Imię i nazwisko</span><input name="name" autocomplete="name" required></label>
+            <label class="field"><span>E-mail</span><input name="email" type="email" autocomplete="email" required></label>
+            <label class="field"><span>Telefon</span><input name="phone" type="tel" autocomplete="tel" inputmode="tel" pattern="[+0-9 ]{9,15}" required></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="pstep">
+          <legend><span class="pstep__n">2</span>Dostawa</legend>
+          <div class="opts" id="shipOpts"></div>
+          <div class="fields" data-for="paczkomat">
+            <label class="field"><span>Kod paczkomatu</span><input name="locker" autocomplete="off" placeholder="np. WAW22A" pattern="[A-Za-z]{3}[0-9]{2,3}[A-Za-z]{0,2}" required></label>
+            <p class="field__help">Kod znajdziesz na mapie paczkomatów InPost, jest też na samym automacie.</p>
+          </div>
+          <div class="fields" data-for="kurier" hidden>
+            <label class="field field--wide"><span>Ulica i numer</span><input name="street" autocomplete="street-address" required></label>
+            <label class="field field--zip"><span>Kod pocztowy</span><input name="zip" autocomplete="postal-code" inputmode="numeric" placeholder="00-000" pattern="[0-9]{2}-[0-9]{3}" required></label>
+            <label class="field"><span>Miejscowość</span><input name="city" autocomplete="address-level2" required></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="pstep">
+          <legend><span class="pstep__n">3</span>Sposób płatności</legend>
+          <div class="opts opts--3">
+            <label class="opt"><input type="radio" name="method" value="blik" checked><span class="opt__name">BLIK</span><span class="opt__note">Kod z aplikacji banku</span></label>
+            <label class="opt"><input type="radio" name="method" value="przelew"><span class="opt__name">Szybki przelew</span><span class="opt__note">Logujesz się do swojego banku</span></label>
+            <label class="opt"><input type="radio" name="method" value="karta"><span class="opt__name">Karta</span><span class="opt__note">Visa albo Mastercard</span></label>
+          </div>
+          <p class="pstep__note">Płatność dokończysz na stronie operatora. Nie podajesz tu danych karty.</p>
+        </fieldset>
+
+        <label class="agree"><input type="checkbox" name="agree" required><span>Akceptuję regulamin sklepu i zasady zwrotów.</span></label>
+      </form>
+
+      <aside class="psum" aria-labelledby="sumTitle">
+        <h2 id="sumTitle">Twoje zamówienie</h2>
+        <ul class="psum__items" id="sumItems"></ul>
+        <dl class="psum__rows">
+          <div><dt>Produkty</dt><dd id="sumGoods"></dd></div>
+          <div><dt>Dostawa</dt><dd id="sumShip"></dd></div>
+        </dl>
+        <div class="psum__total"><span id="sumTotalLabel">Razem</span><b id="sumTotal"></b></div>
+        <button class="btn btn--blue psum__pay" type="submit" form="payForm" id="payBtn">Zapłać</button>
+        <p class="psum__hint" id="payHint" aria-live="polite"></p>
+        <p class="psum__note">Cały zysk ze sprzedaży trafi do <b>Fundacji Mam Marzenie</b>.</p>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__cols">
+      <div class="footer__brand">
+        <img src="logo.webp" alt="Gwiazdka SMP" width="147" height="72" loading="lazy">
+        <p>Gwiazdka SMP – charytatywna akcja Sagiego. Zbieramy na prezenty dla dzieci z Fundacji Mam Marzenie.</p>
+      </div>
+      <div>
+        <h4>Akcja</h4>
+        <ul>
+          <li><a href="index.html#start">Start</a></li>
+          <li><a href="index.html#informacje">Informacje</a></li>
+          <li><a href="index.html#ranking">Ranking</a></li>
+          <li><a href="index.html#wesprzyj" data-link="donate">Wesprzyj</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Merch</h4>
+        <ul>
+          <li><a href="merch.html#bluzy">Bluzy</a></li>
+          <li><a href="merch.html#koszulki">Koszulki</a></li>
+          <li><a href="merch.html#czapki">Czapki</a></li>
+          <li><a href="merch.html#breloki">Breloki</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">© 2026 Gwiazdka SMP</div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="common.js?v=20261124f"></script>
+<script src="products.js?v=20261124f"></script>
+<script src="platnosc.js?v=20261124f"></script>
+</body>
+</html>

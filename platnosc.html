@@ -8,9 +8,9 @@
 <link rel="icon" href="logo.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261124m">
-<script>if(sessionStorage.getItem("wipe")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("wipe-in");sessionStorage.removeItem("wipe");if(localStorage.getItem("gwiazdka-theme")==="light")document.documentElement.dataset.theme="light";setTimeout(function(){document.documentElement.classList.remove("wipe-in")},1500)</script>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Poppins:wght@400;500;600;700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=20261124s">
+<script>if(sessionStorage.getItem("wipe")&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("wipe-in");sessionStorage.removeItem("wipe");var t=localStorage.getItem("gwiazdka-theme");if(t&&t!=="dark")document.documentElement.dataset.theme=t;if(localStorage.getItem("gwiazdka-font")==="sagi")document.documentElement.dataset.font="sagi";setTimeout(function(){document.documentElement.classList.remove("wipe-in")},1500)</script>
 </head>
 <body>
 
@@ -26,10 +26,11 @@
     </nav>
     <div class="header__end">
       <a class="btn btn--red btn--sm" href="index.html#wesprzyj" data-link="donate">Wesprzyj</a>
-      <button class="icon-btn theme-btn" id="themeBtn" aria-label="Jasny motyw" aria-pressed="false">
-        <svg class="i-sun" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 3h3v3H3zM4 0h1v2H4zM4 7h1v2H4zM0 4h2v1H0zM7 4h2v1H7zM1 1h1v1H1zM7 1h1v1H7zM1 7h1v1H1zM7 7h1v1H7z"/></svg>
-        <svg class="i-moon" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M3 0h3v1H3zM2 1h2v1H2zM1 2h2v3H1zM1 5h3v1H1zM2 6h5v1H2zM3 7h4v1H3z"/></svg>
-      </button>
+      <button class="icon-btn font-btn" id="fontBtn" aria-label="Czcionki jak na sagi.store" aria-pressed="false"><span aria-hidden="true">Aa</span></button>
+      <div class="theme-wrap">
+        <button class="icon-btn theme-btn" id="themeBtn" aria-label="Kolory strony" aria-haspopup="true" aria-expanded="false" aria-controls="themes"><i aria-hidden="true"><b style="background:#0c1031"></b><b style="background:#ffc218"></b><b style="background:#1e8b4b"></b><b style="background:#d6283a"></b></i></button>
+        <div class="themes" id="themes" role="group" aria-label="Kolory strony" hidden></div>
+      </div>
       <a class="icon-btn" href="merch.html#koszyk" aria-label="Koszyk">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
         <span class="cart-count" id="cartCount" hidden>0</span>
@@ -138,8 +139,8 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="common.js?v=20261124m"></script>
-<script src="products.js?v=20261124m"></script>
-<script src="platnosc.js?v=20261124m"></script>
+<script src="common.js?v=20261124s"></script>
+<script src="products.js?v=20261124s"></script>
+<script src="platnosc.js?v=20261124s"></script>
 </body>
 </html>

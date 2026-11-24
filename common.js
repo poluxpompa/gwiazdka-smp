@@ -72,9 +72,12 @@ document.querySelectorAll('[data-stars]').forEach(sky => {
 // Bloki mają stały rozmiar w pikselach. Rysunek ma szerokość elementu (nie jest rozciągany),
 // więc przy oddaleniu strony albo na szerokim monitorze bloki zostają kwadratowe i ostre.
 const decoWidth = (el, step) => Math.ceil(Math.max(el.clientWidth, 320) / step) * step;
-// W jasnym motywie granatowe warstwy terenu i krawędzie sekcji dostają jasne odpowiedniki.
-const LIGHT = { '#0c1031': '#f3f6fc', '#161c4a': '#e4eaf7', '#10163e': '#e8edf8', '#131a47': '#d6deef' };
-const tone = col => document.documentElement.dataset.theme === 'light' ? (LIGHT[col.toLowerCase()] || col) : col;
+// Kolory terenu i krawędzi sekcji biorą się ze zmiennych aktualnego motywu (granatowe wartości to motyw domyślny).
+const DECO_VARS = { '#0c1031': '--bg', '#161c4a': '--bg-2', '#10163e': '--deco-far', '#131a47': '--deco-tree', '#d6283a': '--red' };
+const tone = col => {
+  const v = DECO_VARS[col.toLowerCase()];
+  return (v && getComputedStyle(document.documentElement).getPropertyValue(v).trim()) || col;
+};
 const decoSvg = (W, H, parts) => `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice" shape-rendering="crispEdges">${parts}</svg>`;
 
 function drawDeco() {
@@ -134,21 +137,51 @@ addEventListener('resize', () => {
   decoT = setTimeout(() => { if (Math.abs(innerWidth - decoW) > 30) { decoW = innerWidth; drawDeco(); } }, 150);
 });
 
-// ---------- przełącznik motywu (ciemny / biały) ----------
-const themeBtn = document.getElementById('themeBtn');
-function syncThemeBtn() {
-  const light = document.documentElement.dataset.theme === 'light';
-  themeBtn.setAttribute('aria-pressed', light);
-  themeBtn.setAttribute('aria-label', light ? 'Ciemny motyw' : 'Jasny motyw');
-}
-if (themeBtn) {
-  syncThemeBtn();
-  themeBtn.addEventListener('click', () => {
-    const light = document.documentElement.dataset.theme !== 'light';
-    if (light) document.documentElement.dataset.theme = 'light'; else delete document.documentElement.dataset.theme;
-    localStorage.setItem('gwiazdka-theme', light ? 'light' : 'dark');
-    syncThemeBtn();
+// ---------- motywy kolorów ----------
+// [nazwa w data-theme, podpis, kolory na próbce: tło, drugie tło, akcent]
+const THEMES = [
+  ['', 'Granat', '#0c1031', '#161c4a', '#2f6eef'],
+  ['light', 'Jasny', '#f3f6fc', '#e4eaf7', '#2f6eef'],
+  ['pine', 'Choinka', '#0b2117', '#11301f', '#d6283a'],
+  ['ginger', 'Piernik', '#1f140d', '#2c1c12', '#1e8b4b'],
+  ['red', 'Mikołaj', '#3b0b13', '#4f111c', '#1e8b4b']
+];
+const themeBtn = document.getElementById('themeBtn'), themesEl = document.getElementById('themes');
+if (themeBtn && themesEl) {
+  themesEl.innerHTML = THEMES.map(([id, name, a, b, c]) =>
+    `<button data-theme-set="${id}" aria-pressed="false"><span class="sw"><b style="background:${a}"></b><b style="background:${b}"></b><b style="background:${c}"></b><b style="background:#ffc218"></b></span>${name}</button>`).join('');
+  const current = () => document.documentElement.dataset.theme || '';
+  const sync = () => themesEl.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.themeSet === current()));
+  const open = on => { themesEl.hidden = !on; themeBtn.setAttribute('aria-expanded', on); };
+  sync();
+  themeBtn.addEventListener('click', e => { e.stopPropagation(); open(themesEl.hidden); });
+  themesEl.addEventListener('click', e => {
+    const b = e.target.closest('[data-theme-set]');
+    if (!b) return;
+    const id = b.dataset.themeSet;
+    if (id) document.documentElement.dataset.theme = id; else delete document.documentElement.dataset.theme;
+    localStorage.setItem('gwiazdka-theme', id || 'dark');
+    sync();
     drawDeco();
+  });
+  document.addEventListener('click', e => { if (!themesEl.hidden && !e.target.closest('.theme-wrap')) open(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !themesEl.hidden) { open(false); themeBtn.focus(); } });
+}
+
+// ---------- przełącznik czcionek (z Minecrafta / jak na sagi.store) ----------
+const fontBtn = document.getElementById('fontBtn');
+function syncFontBtn() {
+  const sagi = document.documentElement.dataset.font === 'sagi';
+  fontBtn.setAttribute('aria-pressed', sagi);
+  fontBtn.setAttribute('aria-label', sagi ? 'Czcionka z Minecrafta' : 'Czcionki jak na sagi.store');
+}
+if (fontBtn) {
+  syncFontBtn();
+  fontBtn.addEventListener('click', () => {
+    const sagi = document.documentElement.dataset.font !== 'sagi';
+    if (sagi) document.documentElement.dataset.font = 'sagi'; else delete document.documentElement.dataset.font;
+    localStorage.setItem('gwiazdka-font', sagi ? 'sagi' : 'minecraft');
+    syncFontBtn();
   });
 }
 
@@ -166,7 +199,7 @@ if (themeBtn) {
     w.setAttribute('aria-hidden', 'true');
     w.style.setProperty('--cols', cols);
     w.style.setProperty('--size', size + 'px');
-    const r = rnd(5), shades = document.documentElement.dataset.theme === 'light' ? ['#e4eaf7', '#f3f6fc', '#d6deef'] : ['#161c4a', '#0c1031', '#1b2257'];
+    const r = rnd(5), shades = [tone('#161c4a'), tone('#0c1031'), tone('#10163e')];
     let max = 0;
     for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
       const b = document.createElement('i'), d = Math.round((x + y) * STEP + r() * RAND);

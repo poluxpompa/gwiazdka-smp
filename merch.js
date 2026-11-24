@@ -8,8 +8,6 @@ const stage = document.getElementById('stage');
 const spin = document.getElementById('spin');
 const card = document.getElementById('card');
 const shadow = document.getElementById('shadow');
-const ped = document.getElementById('ped');
-const viewsEl = document.getElementById('views');
 const hintEl = document.getElementById('hint');
 const info = document.getElementById('info');
 const rail = document.getElementById('rail');
@@ -54,7 +52,6 @@ function showView(k) {
   if (gl3d) gl3d.setFace(mod(k, 2), s);
   // warstwy grubości nie są obrócone, więc przy widoku z tyłu odbijamy je, żeby pokrywały się z tylną ścianą
   card.classList.toggle('is-back', mod(k, 2) === 1);
-  viewsEl.querySelectorAll('button').forEach((b, j) => b.setAttribute('aria-pressed', j === i));
   st.k = k;
 }
 
@@ -156,14 +153,6 @@ stage.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft') { e.preventDefault(); turn(-1); }
   if (e.key === 'ArrowRight') { e.preventDefault(); turn(1); }
 });
-viewsEl.addEventListener('click', e => {
-  const b = e.target.closest('button');
-  if (!b) return;
-  const cur = mod((st.p.start || 0) + Math.round(st.angle / 180), st.n);
-  let delta = mod(+b.dataset.v - cur, st.n);
-  if (delta > st.n / 2) delta -= st.n;
-  if (delta) turn(delta);
-});
 
 // ---------- wybór produktu ----------
 function visible() { return [...rail.children].filter(li => !li.hidden).map(li => byId[li.dataset.id]); }
@@ -190,9 +179,7 @@ function setProduct(p) {
   st.n = views(p).length;
   st.angle = 0; st.tween = null; st.drag = null;
   faceA.alt = p.name;
-  viewsEl.innerHTML = st.n > 1 ? views(p).map(([, label], i) => `<button data-v="${i}" aria-pressed="false">${label}</button>`).join('') : '';
-  viewsEl.hidden = st.n < 2;
-  hintEl.textContent = st.n > 1 ? 'Obróć mnie' : 'Przeciągnij';
+  hintEl.textContent = st.n > 1 ? 'Przeciągnij, żeby obrócić' : 'Przeciągnij, żeby wychylić';
   hintEl.classList.remove('is-gone');
   showView(0);
   faceB.src = faceA.src;
@@ -222,14 +209,13 @@ function select(p, opts = {}) {
     // animacje wyjścia zostawiają stan końcowy, więc zdejmujemy je przed wejściem nowego produktu
     if (outAnim) outAnim.cancel();
     info.getAnimations().forEach(a => a.cancel());
-    // produkt spada na podest, odbija się, a z podestu unosi się pikselowy kurz
+    // produkt opada na miejsce i lekko się odbija
     spin.animate([
       { transform: 'translateY(-170px) rotate(-6deg)', opacity: 0 },
       { transform: 'translateY(0) rotate(0)', opacity: 1, offset: .55, easing: 'ease-out' },
       { transform: 'translateY(-18px)', offset: .75, easing: 'ease-in-out' },
       { transform: 'none', opacity: 1 }
     ], { duration: first ? 900 : 620, delay: first ? 250 : 0, easing: 'ease-in', fill: 'backwards' }).finished.then(() => {
-      ped.classList.remove('is-hit'); void ped.offsetWidth; ped.classList.add('is-hit');
       busy = false;
       if (pending) { const [np, no] = pending; pending = null; if (np !== st.p) return select(np, no); }
       if (st.n > 1) demo();

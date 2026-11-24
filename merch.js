@@ -174,6 +174,20 @@ function renderInfo(p) {
     ${p.sold ? '<button class="btn info__buy" disabled>Wyprzedane</button>' : `<button class="btn btn--blue info__buy" data-add="${p.id}">Dodaj do koszyka</button>`}`;
 }
 
+// Pole produktu ma kształt zdjęcia (szeroka koszulka = niższe pole), więc ubranie razem z cieniem
+// stoi na środku sceny, bez pustego miejsca nad nim.
+function applyFit() {
+  if (!st.aspect) return;
+  const w = spin.clientWidth;
+  spin.style.height = Math.round(st.aspect > 1 ? w / st.aspect : w) + 'px';
+}
+function fitSpin() {
+  const im = new Image();
+  im.onload = () => { st.aspect = im.naturalWidth / im.naturalHeight; applyFit(); };
+  im.src = faceA.src;
+}
+addEventListener('resize', applyFit);
+
 function setProduct(p) {
   st.p = p;
   st.n = views(p).length;
@@ -183,6 +197,7 @@ function setProduct(p) {
   hintEl.classList.remove('is-gone');
   showView(0);
   faceB.src = faceA.src;
+  fitSpin();
   // wcześniejsze wczytanie pozostałych stron, żeby przy obrocie nie mignęło puste miejsce
   views(p).forEach(([s]) => { new Image().src = src(p, s); if (gl3d) gl3d.preload(src(p, s)); });
   if (gl3d && st.n > 1) gl3d.setFace(1, faceA.src);

@@ -1,4 +1,4 @@
-// Ranking twórców: każdy twórca buduje wieżę z bloków. Im więcej wpłacono podczas jego streama, tym wyższa wieża.
+// Ranking twórców: podium z bloków dla miejsc 1–3 i kafelki dla miejsc 4–8.
 // W podglądzie nazwy i kwoty są wymyślone, a wpłaty symulowane. Docelowo dane przyjdą ze zrzutek.
 
 const creators = [
@@ -6,49 +6,71 @@ const creators = [
   ['Reniferek', 97680], ['Sniezka', 88180], ['KometaOra', 76940], ['Piernikowy', 69300]
 ].map(([name, amt], id) => ({ id, name, amt }));
 
-const BLOCK = 24, MAX_BLOCKS = 14; // wysokość wieży zawsze w pełnych blokach
-const towersEl = document.getElementById('towers');
-const items = new Map();
+const podiumEl = document.getElementById('podium');
+const restEl = document.getElementById('rest');
+const tiles = new Map();
+let podiumIds = '';
 
-function render(hit) {
-  const sorted = [...creators].sort((a, b) => b.amt - a.amt);
-  const max = sorted[0].amt;
+// Kolejność na podium od lewej: 2., 1., 3.
+const PODIUM_ORDER = [1, 0, 2];
+
+function renderPodium(top) {
+  const ids = top.map(c => c.id).join();
+  if (ids === podiumIds) {
+    top.forEach((c, i) => { podiumEl.querySelector(`[data-place="${i + 1}"] .pod__amt`).textContent = fmtPLN(c.amt); });
+    return;
+  }
+  podiumIds = ids;
+  podiumEl.innerHTML = PODIUM_ORDER.map(i => {
+    const c = top[i];
+    return `<div class="pod" data-place="${i + 1}" data-id="${c.id}">
+      <span class="pod__name" title="${c.name}">${c.name}</span>
+      <span class="pod__amt">${fmtPLN(c.amt)}</span>
+      <span class="pod__step"><span class="pod__place">${i + 1}</span></span>
+    </div>`;
+  }).join('');
+  if (!reduceMotion) podiumEl.querySelectorAll('.pod').forEach((el, k) =>
+    el.animate([{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: k * 60, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' }));
+}
+
+function renderRest(rest, max) {
   const before = new Map();
-  if (!reduceMotion) items.forEach((el, id) => before.set(id, el.getBoundingClientRect()));
-
-  sorted.forEach((c, i) => {
-    let el = items.get(c.id);
+  if (!reduceMotion) tiles.forEach((el, id) => before.set(id, el.getBoundingClientRect()));
+  const keep = new Set(rest.map(c => c.id));
+  tiles.forEach((el, id) => { if (!keep.has(id)) { el.remove(); tiles.delete(id); } });
+  rest.forEach((c, i) => {
+    let el = tiles.get(c.id);
     if (!el) {
       el = document.createElement('li');
-      el.className = 'tw';
-      el.innerHTML = `<span class="tw__amt"></span>
-        <span class="tw__col"><span class="tw__bar"></span></span>
-        <span class="tw__n"></span><span class="tw__name">${c.name}</span>`;
-      items.set(c.id, el);
+      el.className = 'rest';
+      el.innerHTML = `<span class="rest__n"></span><span class="rest__name">${c.name}</span><span class="rest__amt"></span><span class="rest__track"><span class="rest__bar"></span></span>`;
+      tiles.set(c.id, el);
     }
-    const blocks = Math.max(1, Math.round(c.amt / max * MAX_BLOCKS));
-    el.style.setProperty('--h', blocks * BLOCK + 'px');
-    el.style.setProperty('--w', (c.amt / max * 100).toFixed(1) + '%');
-    el.dataset.place = i + 1;
-    el.querySelector('.tw__n').textContent = i + 1;
-    el.querySelector('.tw__amt').textContent = fmtPLN(c.amt);
-    towersEl.appendChild(el);
+    el.querySelector('.rest__n').textContent = i + 4;
+    el.querySelector('.rest__amt').textContent = fmtPLN(c.amt);
+    el.querySelector('.rest__bar').style.width = (c.amt / max * 100).toFixed(1) + '%';
+    restEl.appendChild(el);
   });
-
-  // wieże zamieniają się miejscami płynnie (FLIP)
-  items.forEach((el, id) => {
+  tiles.forEach((el, id) => {
     const was = before.get(id);
     if (!was) return;
     const now = el.getBoundingClientRect(), dx = was.left - now.left, dy = was.top - now.top;
-    if (dx || dy) el.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'none' }], { duration: 700, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    if (dx || dy) el.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'none' }], { duration: 650, easing: 'cubic-bezier(.2,.8,.2,1)' });
   });
+}
 
-  const el = hit && items.get(hit.d.id);
-  if (!el || reduceMotion) return;
+function render(hit) {
+  const sorted = [...creators].sort((a, b) => b.amt - a.amt);
+  renderPodium(sorted.slice(0, 3));
+  renderRest(sorted.slice(3), sorted[0].amt);
+  if (!hit || reduceMotion) return;
+  // „+kwota” przy twórcy, który właśnie dostał wpłatę
+  const box = podiumEl.querySelector(`[data-id="${hit.d.id}"] .pod__amt`) || tiles.get(hit.d.id);
+  if (!box) return;
   const p = document.createElement('span');
-  p.className = 'tw__plus';
+  p.className = 'crew__plus';
   p.textContent = '+' + fmtPLN(hit.amt);
-  el.appendChild(p);
+  box.appendChild(p);
   setTimeout(() => p.remove(), 1500);
 }
 render();

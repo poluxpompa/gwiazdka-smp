@@ -1,4 +1,4 @@
-// Strona główna: licznik, ostatnie wpłaty, ranking wpłat i symulacja wpłat na żywo.
+// Strona główna: licznik, ostatnie wpłaty, ranking wpłat (ranking.js) i symulacja wpłat na żywo.
 // Ranking sumuje wpłaty ze wszystkich zrzutek po nazwie wpłacającego (firma albo osoba).
 // Nazwy w podglądzie są wymyślone. Docelowo dane przyjdą ze zrzutek.
 
@@ -14,86 +14,8 @@ const donors = [
 ].map(([name, amt, co], id) => ({ id, name, amt, co }));
 let total = 1312120;
 
-// Twórcy na streamie: ile zebrano podczas ich transmisji (mały ranking obok rankingu wpłat).
-const creators = [
-  ['Kubelkowy', 184280], ['ZorzaMC', 162400], ['MroznyMis', 142830], ['Bombka_PL', 118400],
-  ['Reniferek', 97680], ['Sniezka', 88180], ['KometaOra', 76940], ['Piernikowy', 69300]
-].map(([name, amt], id) => ({ id, name, amt }));
-
-const champsEl = document.getElementById('podium');
-// Miejsca 1–3: lider na całą szerokość, pod nim 2. i 3. miejsce.
-let champIds = '';
-function renderChamps(top) {
-  const ids = top.map(d => d.id).join();
-  if (ids === champIds) {
-    top.forEach((d, i) => { champsEl.querySelector(`.champ--${i + 1} .champ__amt`).textContent = fmtPLN(d.amt); });
-    return;
-  }
-  champIds = ids;
-  champsEl.innerHTML = top.map((d, i) => `
-    <div class="champ champ--${i + 1}">
-      <span class="champ__place">${i + 1}</span>
-      <div class="champ__info">
-        <div class="champ__name" title="${d.name}">${d.name}</div>
-      </div>
-      <div class="champ__amt">${fmtPLN(d.amt)}</div>
-    </div>`).join('');
-}
-if (revealObs) revealObs.observe(champsEl); else champsEl.classList.add('in');
-
-// ---------- miejsca 4–20 ----------
-const listEl = document.getElementById('list');
-const rows = new Map();
-function renderList(rest, max) {
-  const before = new Map();
-  if (!reduceMotion) rows.forEach((el, id) => before.set(id, el.getBoundingClientRect()));
-  const keep = new Set(rest.map(d => d.id));
-  rows.forEach((el, id) => { if (!keep.has(id)) { el.remove(); rows.delete(id); } });
-
-  rest.forEach((d, i) => {
-    let el = rows.get(d.id);
-    if (!el) {
-      el = document.createElement('li');
-      el.className = 'row';
-      el.innerHTML = `<span class="row__n"></span>
-        <div class="row__mid"><div class="row__name">${d.name}</div><div class="row__track"><div class="row__bar"></div></div></div>
-        <span class="row__amt"></span>`;
-      rows.set(d.id, el);
-    }
-    el.querySelector('.row__n').textContent = i + 4;
-    el.querySelector('.row__amt').textContent = fmtPLN(d.amt);
-    el.querySelector('.row__bar').style.width = (d.amt / max * 100).toFixed(2) + '%';
-    listEl.appendChild(el);
-  });
-
-  rows.forEach((el, id) => {
-    const was = before.get(id);
-    if (!was) return;
-    const now = el.getBoundingClientRect(), dx = was.left - now.left, dy = was.top - now.top;
-    if (dx || dy) el.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'none' }], { duration: 650, easing: 'cubic-bezier(.2,.8,.2,1)' });
-  });
-}
-
-const creatorsEl = document.getElementById('creators');
-function renderCreators() {
-  const sorted = [...creators].sort((a, b) => b.amt - a.amt);
-  creatorsEl.innerHTML = sorted.map((c, i) => `<li><span class="cr__n">${i + 1}</span><span class="cr__name">${c.name}</span><span class="cr__amt">${fmtPLN(c.amt)}</span></li>`).join('');
-}
-
-function render(hit) {
-  renderCreators();
-  const sorted = [...donors].sort((a, b) => b.amt - a.amt).slice(0, 20);
-  renderChamps(sorted.slice(0, 3));
-  renderList(sorted.slice(3), sorted[0].amt);
-  const row = hit && rows.get(hit.d.id);
-  if (!row || reduceMotion) return;
-  row.classList.remove('hit'); void row.offsetWidth; row.classList.add('hit');
-  const p = document.createElement('span');
-  p.className = 'plus';
-  p.textContent = '+' + fmtPLN(hit.amt);
-  row.appendChild(p);
-  setTimeout(() => p.remove(), 1500);
-}
+const renderRanking = makeRanking(document.getElementById('podium'), document.getElementById('list'));
+const render = hit => renderRanking(donors, hit);
 render();
 
 // ---------- licznik ----------
@@ -171,7 +93,6 @@ function donate() {
   }
   const amt = pick(d.co ? COMPANY_AMOUNTS : PEOPLE_AMOUNTS);
   d.amt += amt;
-  creators[Math.floor(Math.pow(Math.random(), 1.4) * creators.length)].amt += amt;
   total += amt;
   burst(amt);
   pushFeed(d, amt, Date.now(), true);
@@ -227,4 +148,4 @@ const secObs = new IntersectionObserver(entries => {
     if (en.isIntersecting) secLinks.forEach(a => a.classList.toggle('active', a.dataset.sec === en.target.id));
   });
 }, { rootMargin: '-45% 0px -50% 0px' });
-['start', 'informacje', 'ranking', 'merch', 'wesprzyj'].forEach(id => secObs.observe(document.getElementById(id)));
+['start', 'ranking', 'merch', 'wesprzyj'].forEach(id => secObs.observe(document.getElementById(id)));

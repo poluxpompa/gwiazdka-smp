@@ -72,6 +72,9 @@ document.querySelectorAll('[data-stars]').forEach(sky => {
 // Bloki mają stały rozmiar w pikselach. Rysunek ma szerokość elementu (nie jest rozciągany),
 // więc przy oddaleniu strony albo na szerokim monitorze bloki zostają kwadratowe i ostre.
 const decoWidth = (el, step) => Math.ceil(Math.max(el.clientWidth, 320) / step) * step;
+// W jasnym motywie granatowe warstwy terenu i krawędzie sekcji dostają jasne odpowiedniki.
+const LIGHT = { '#0c1031': '#f3f6fc', '#161c4a': '#e4eaf7', '#10163e': '#e8edf8', '#131a47': '#d6deef' };
+const tone = col => document.documentElement.dataset.theme === 'light' ? (LIGHT[col.toLowerCase()] || col) : col;
 const decoSvg = (W, H, parts) => `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice" shape-rendering="crispEdges">${parts}</svg>`;
 
 function drawDeco() {
@@ -83,7 +86,7 @@ function drawDeco() {
       let h = base, out = '';
       for (let x = 0; x < W; x += B * step) {
         h = Math.max(base - amp, Math.min(base + amp, h + Math.round(r() * 2 - 1) * B));
-        out += `<rect x="${x}" y="${H - h}" width="${B * step}" height="${h}" fill="${fill}"/>`;
+        out += `<rect x="${x}" y="${H - h}" width="${B * step}" height="${h}" fill="${tone(fill)}"/>`;
       }
       return out;
     };
@@ -91,9 +94,9 @@ function drawDeco() {
       let t = '';
       for (let i = 0; i < size; i++) {
         const w = (size - i) * 2 * B, y = ground - (i + 1) * B * 1.5;
-        t += `<rect x="${x - w / 2}" y="${y}" width="${w}" height="${B * 1.5}" fill="${fill}"/>`;
+        t += `<rect x="${x - w / 2}" y="${y}" width="${w}" height="${B * 1.5}" fill="${tone(fill)}"/>`;
       }
-      return t + `<rect x="${x - B / 2}" y="${ground - B}" width="${B}" height="${B}" fill="${fill}"/>`;
+      return t + `<rect x="${x - B / 2}" y="${ground - B}" width="${B}" height="${B}" fill="${tone(fill)}"/>`;
     };
     let parts = hills('#10163e', 112, 32, 3);
     // choinki co 1440 px w tym samym układzie, żeby szeroki ekran nie był pusty
@@ -106,7 +109,7 @@ function drawDeco() {
 
   // Schodkowa linia z bloków na dole sekcji (jak teren w Minecrafcie), w kolorze następnej sekcji.
   document.querySelectorAll('[data-ground]').forEach(el => {
-    const fill = el.dataset.ground, B = 24, H = 56, W = decoWidth(el, B * 2), r = rnd(42);
+    const fill = tone(el.dataset.ground), B = 24, H = 56, W = decoWidth(el, B * 2), r = rnd(42);
     let h = 1, parts = '';
     for (let c = 0; c < W / B; c += 2) {
       h = Math.max(0, Math.min(2, h + Math.round(r() * 2 - 1)));
@@ -117,7 +120,7 @@ function drawDeco() {
 
   // Schodkowa krawędź z bloków u góry sekcji, w kolorze sekcji powyżej.
   document.querySelectorAll('[data-cap]').forEach((el, k) => {
-    const fill = el.dataset.cap, B = 24, W = decoWidth(el, B * 2), r = rnd(97 + k * 131);
+    const fill = tone(el.dataset.cap), B = 24, W = decoWidth(el, B * 2), r = rnd(97 + k * 131);
     let parts = '';
     for (let c = 0; c < W / B; c += 2) parts += `<rect x="${c * B}" y="0" width="${B * 2}" height="${[4, 12, 20, 28][Math.floor(r() * 4)]}" fill="${fill}"/>`;
     el.innerHTML = decoSvg(W, 28, parts).replace('xMinYMax', 'xMinYMin');
@@ -130,6 +133,24 @@ addEventListener('resize', () => {
   clearTimeout(decoT);
   decoT = setTimeout(() => { if (Math.abs(innerWidth - decoW) > 30) { decoW = innerWidth; drawDeco(); } }, 150);
 });
+
+// ---------- przełącznik motywu (ciemny / biały) ----------
+const themeBtn = document.getElementById('themeBtn');
+function syncThemeBtn() {
+  const light = document.documentElement.dataset.theme === 'light';
+  themeBtn.setAttribute('aria-pressed', light);
+  themeBtn.setAttribute('aria-label', light ? 'Ciemny motyw' : 'Jasny motyw');
+}
+if (themeBtn) {
+  syncThemeBtn();
+  themeBtn.addEventListener('click', () => {
+    const light = document.documentElement.dataset.theme !== 'light';
+    if (light) document.documentElement.dataset.theme = 'light'; else delete document.documentElement.dataset.theme;
+    localStorage.setItem('gwiazdka-theme', light ? 'light' : 'dark');
+    syncThemeBtn();
+    drawDeco();
+  });
+}
 
 // ---------- przejście między stronami ----------
 // Przy przejściu na drugą stronę ekran zakrywają pikselowe bloki (po przekątnej), a na nowej stronie znikają.
@@ -145,7 +166,7 @@ addEventListener('resize', () => {
     w.setAttribute('aria-hidden', 'true');
     w.style.setProperty('--cols', cols);
     w.style.setProperty('--size', size + 'px');
-    const r = rnd(5), shades = ['#161c4a', '#0c1031', '#1b2257'];
+    const r = rnd(5), shades = document.documentElement.dataset.theme === 'light' ? ['#e4eaf7', '#f3f6fc', '#d6deef'] : ['#161c4a', '#0c1031', '#1b2257'];
     let max = 0;
     for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
       const b = document.createElement('i'), d = Math.round((x + y) * STEP + r() * RAND);
